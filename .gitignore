@@ -1,0 +1,29 @@
+# Binary
+tf-mirror
+tf-mirror.exe
+
+# Cache directory
+cache/
+
+# Certificates (local development)
+certs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Go
+vendor/
+
