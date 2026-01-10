@@ -25,7 +25,7 @@ jobs:
         run: go mod download
 
       - name: Build
-        run: go build -v ./cmd/tf-mirror
+        run: go build -v .
 
       - name: Test
         run: go test -v ./...

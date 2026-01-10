@@ -21,11 +21,11 @@ help:
 
 # Build for Linux
 build:
-	GOOS=linux GOARCH=amd64 go build -o $(BINARY) ./cmd/tf-mirror
+	GOOS=linux GOARCH=amd64 go build -o $(BINARY) .
 
 # Run (for development)
 run:
-	go run ./cmd/tf-mirror
+	go run .
 
 # Tests
 test:

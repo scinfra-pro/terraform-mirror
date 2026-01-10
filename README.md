@@ -163,7 +163,7 @@ sequenceDiagram
 
 ```
 terraform-mirror/
-├── cmd/tf-mirror/          # Entry point
+├── main.go                 # Entry point
 ├── internal/
 │   ├── cache/              # File-based hash cache
 │   ├── config/             # Configuration from ENV
