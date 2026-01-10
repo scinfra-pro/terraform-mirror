@@ -2,8 +2,8 @@
 tf-mirror
 tf-mirror.exe
 
-# Cache directory
-cache/
+# Cache directory (runtime, in root)
+/cache/
 
 # Certificates (local development)
 certs/
