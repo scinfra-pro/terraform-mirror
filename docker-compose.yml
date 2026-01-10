@@ -1,0 +1,40 @@
+services:
+  # NGINX - caching layer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+      - nginx_cache:/var/cache/nginx/tf-mirror
+    depends_on:
+      - tf-mirror
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/nginx-health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Terraform Mirror - proxy to registry
+  tf-mirror:
+    build: .
+    environment:
+      - TF_MIRROR_LISTEN=:8080
+      - TF_MIRROR_UPSTREAM_URL=https://registry.terraform.io
+      - TF_MIRROR_LOG_LEVEL=info
+    expose:
+      - "8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  nginx_cache:
+    driver: local
+
