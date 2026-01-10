@@ -16,6 +16,9 @@ type Config struct {
 	UpstreamURL     string
 	UpstreamTimeout time.Duration
 
+	// SOCKS5 Proxy (optional, for accessing blocked registries)
+	SOCKS5Addr string
+
 	// Cache
 	CacheEnabled bool
 	CacheDir     string
@@ -32,6 +35,7 @@ func Load() *Config {
 		WriteTimeout:    getDurationEnv("TF_MIRROR_WRITE_TIMEOUT", 300*time.Second),
 		UpstreamURL:     getEnv("TF_MIRROR_UPSTREAM_URL", "https://registry.terraform.io"),
 		UpstreamTimeout: getDurationEnv("TF_MIRROR_UPSTREAM_TIMEOUT", 60*time.Second),
+		SOCKS5Addr:      getEnv("TF_MIRROR_SOCKS5_ADDR", ""),
 		CacheEnabled:    getBoolEnv("TF_MIRROR_CACHE_ENABLED", true),
 		CacheDir:        getEnv("TF_MIRROR_CACHE_DIR", "./cache"),
 		LogLevel:        getEnv("TF_MIRROR_LOG_LEVEL", "info"),

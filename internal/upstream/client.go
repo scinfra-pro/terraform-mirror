@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"time"
+
+	"golang.org/x/net/proxy"
 )
 
 // Client represents an HTTP client for requests to upstream registry
@@ -15,13 +18,43 @@ type Client struct {
 }
 
 // New creates a new upstream client
-func New(baseURL string, timeout time.Duration) *Client {
+// If socks5Addr is empty, direct connection is used
+// If socks5Addr is provided (e.g., "127.0.0.1:1080"), SOCKS5 proxy is used
+func New(baseURL string, timeout time.Duration, socks5Addr string) (*Client, error) {
+	transport := &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+
+	// Configure SOCKS5 proxy if provided
+	if socks5Addr != "" {
+		dialer, err := proxy.SOCKS5("tcp", socks5Addr, nil, proxy.Direct)
+		if err != nil {
+			return nil, fmt.Errorf("creating SOCKS5 dialer: %w", err)
+		}
+
+		// Type assertion for DialContext support
+		if contextDialer, ok := dialer.(proxy.ContextDialer); ok {
+			transport.DialContext = contextDialer.DialContext
+		} else {
+			// Fallback for older proxy implementations
+			transport.Dial = dialer.Dial
+		}
+	}
+
 	return &Client{
 		baseURL: baseURL,
 		httpClient: &http.Client{
-			Timeout: timeout,
+			Transport: transport,
+			Timeout:   timeout,
 		},
-	}
+	}, nil
 }
 
 // Get performs a GET request to upstream

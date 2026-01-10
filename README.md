@@ -92,8 +92,24 @@ Configuration via environment variables:
 |----------|---------|-------------|
 | `TF_MIRROR_LISTEN` | `:8080` | Server listen address |
 | `TF_MIRROR_UPSTREAM_URL` | `https://registry.terraform.io` | Upstream registry URL |
+| `TF_MIRROR_SOCKS5_ADDR` | *(empty)* | SOCKS5 proxy address (e.g., `127.0.0.1:1080`) |
 | `TF_MIRROR_CACHE_DIR` | `./cache` | Cache directory |
 | `TF_MIRROR_LOG_LEVEL` | `info` | Log level (debug, info, warn, error) |
+
+### SOCKS5 Proxy Support
+
+For accessing `registry.terraform.io` from regions where it's blocked, you can configure a SOCKS5 proxy:
+
+```bash
+# With sslocal (Shadowsocks)
+TF_MIRROR_SOCKS5_ADDR=127.0.0.1:1080
+
+# Or with SSH tunnel
+ssh -D 1080 -N user@proxy-server &
+TF_MIRROR_SOCKS5_ADDR=127.0.0.1:1080
+```
+
+When `TF_MIRROR_SOCKS5_ADDR` is set, all upstream requests go through the SOCKS5 proxy. When empty, direct connection is used.
 
 ## Caching
 
@@ -106,6 +122,7 @@ Caching is implemented via NGINX `proxy_cache`:
 | `*.zip` | 1 year | Provider archives (immutable) |
 
 ## Architecture
+
 
 ```mermaid
 flowchart LR

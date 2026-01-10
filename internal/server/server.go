@@ -25,7 +25,16 @@ type Server struct {
 
 // New creates a new server
 func New(cfg *config.Config, logger *slog.Logger) *Server {
-	upstreamClient := upstream.New(cfg.UpstreamURL, cfg.UpstreamTimeout)
+	upstreamClient, err := upstream.New(cfg.UpstreamURL, cfg.UpstreamTimeout, cfg.SOCKS5Addr)
+	if err != nil {
+		logger.Error("failed to create upstream client", "error", err)
+		panic(err)
+	}
+
+	if cfg.SOCKS5Addr != "" {
+		logger.Info("SOCKS5 proxy enabled", "addr", cfg.SOCKS5Addr)
+	}
+
 	hashCache := cache.NewHashCache(cfg.CacheDir)
 	reg := registry.New(upstreamClient, hashCache, logger)
 
