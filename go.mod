@@ -1,8 +1,7 @@
 module github.com/scinfra-pro/terraform-mirror
 
-go 1.24.0
+go 1.22.0
 
-toolchain go1.24.11
+toolchain go1.22.2
 
-require golang.org/x/mod v0.32.0
-
+require golang.org/x/mod v0.21.0
