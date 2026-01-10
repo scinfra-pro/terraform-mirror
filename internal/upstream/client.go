@@ -39,12 +39,14 @@ func New(baseURL string, timeout time.Duration, socks5Addr string) (*Client, err
 			return nil, fmt.Errorf("creating SOCKS5 dialer: %w", err)
 		}
 
-		// Type assertion for DialContext support
+		// Use DialContext if available, otherwise wrap Dial
 		if contextDialer, ok := dialer.(proxy.ContextDialer); ok {
 			transport.DialContext = contextDialer.DialContext
 		} else {
-			// Fallback for older proxy implementations
-			transport.Dial = dialer.Dial
+			// Wrap Dial in DialContext for compatibility
+			transport.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return dialer.Dial(network, addr)
+			}
 		}
 	}
 
