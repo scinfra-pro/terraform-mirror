@@ -14,9 +14,9 @@ import (
 )
 
 // handleHealth handles GET /health
-func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	_ = json.NewEncoder(w).Encode(map[string]string{
 		"status": "ok",
 	})
 }
@@ -33,7 +33,7 @@ func (s *Server) handleVersions(ctx context.Context, w http.ResponseWriter, name
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
+	_, _ = w.Write(data)
 }
 
 // handleVersion handles GET {version}.json — platform information
@@ -48,7 +48,7 @@ func (s *Server) handleVersion(ctx context.Context, w http.ResponseWriter, names
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write(data)
+	_, _ = w.Write(data)
 }
 
 // handleDownload handles GET *.zip — proxy archive with h1 hash calculation
@@ -112,7 +112,7 @@ func (s *Server) handleDownload(ctx context.Context, w http.ResponseWriter, name
 	if resp.ContentLength > 0 {
 		w.Header().Set("Content-Length", resp.Header.Get("Content-Length"))
 	}
-	io.Copy(w, resp.Body)
+	_, _ = io.Copy(w, resp.Body)
 }
 
 // downloadWithHash downloads ZIP, calculates h1, saves to cache and serves to client
@@ -159,6 +159,5 @@ func (s *Server) downloadWithHash(w http.ResponseWriter, resp *http.Response, na
 	// Serve file to client
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", written))
-	io.Copy(w, tmpFile)
+	_, _ = io.Copy(w, tmpFile)
 }
-
