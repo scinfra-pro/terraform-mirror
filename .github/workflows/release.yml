@@ -64,3 +64,64 @@ jobs:
         with:
           generate_release_notes: true
 
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          
+          # Add jump host and target to known_hosts
+          ssh-keyscan -H 51.250.11.142 >> ~/.ssh/known_hosts 2>/dev/null
+          
+          # SSH config for jump host
+          cat >> ~/.ssh/config << EOF
+          Host edge-gateway
+            HostName 51.250.11.142
+            User master
+            IdentityFile ~/.ssh/id_ed25519
+            StrictHostKeyChecking no
+
+          Host web-server
+            HostName 10.0.2.10
+            User master
+            IdentityFile ~/.ssh/id_ed25519
+            ProxyJump edge-gateway
+            StrictHostKeyChecking no
+          EOF
+
+      - name: Deploy to web-server
+        run: |
+          ssh web-server << 'ENDSSH'
+            set -e
+            
+            # Create directories if not exist
+            sudo mkdir -p /opt/tf-mirror/certs /var/cache/tf-mirror
+            sudo chown -R master:master /opt/tf-mirror /var/cache/tf-mirror
+            
+            cd /opt/tf-mirror
+            
+            # Pull latest image and restart
+            if [ -f docker-compose.yml ]; then
+              docker compose pull
+              docker compose up -d
+              echo "✅ terraform-mirror updated to ${{ github.ref_name }}"
+            else
+              echo "⚠️ docker-compose.yml not found. First deploy requires manual setup."
+              echo "   Copy docker-compose.yml and nginx.conf to /opt/tf-mirror/"
+              exit 0
+            fi
+          ENDSSH
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          ssh web-server 'docker ps | grep tf-mirror || echo "Container not running yet"'
+
